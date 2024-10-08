@@ -1,0 +1,17 @@
+{{!-- home.handlebars --}}
+<h1>Bienvenido a nuestra tienda</h1>
+
+<h2>Productos Destacados</h2>
+<ul>
+    {{#each featuredProducts}} <!-- Asegúrate de pasar 'featuredProducts' desde tu controlador -->
+        <li>
+            Nombre: {{this.name}}<br>
+            Precio: ${{this.price}}<br>
+            <form action="/api/carts/{{user._id}}/products" method="POST">
+                <input type="hidden" name="productId" value="{{this._id}}">
+                <input type="number" name="quantity" min="1" placeholder="Cantidad">
+                <button type="submit">Agregar al Carrito</button>
+            </form>
+        </li>
+    {{/each}}
+</ul>
