@@ -17,6 +17,11 @@ const productSchema = new Schema({
 
 // Esquema para el carrito
 const cartSchema = new Schema({
+    user: { // Campo para vincular el carrito a un usuario
+        type: Schema.Types.ObjectId,
+        ref: 'User', // Referencia al modelo User
+        required: true
+    },
     products: [productSchema], // Arreglo de productos en el carrito
 }, {
     timestamps: true // Incluye createdAt y updatedAt en el esquema

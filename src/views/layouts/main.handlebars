@@ -13,13 +13,33 @@
                 <li><a href="/">Inicio</a></li>
                 <li><a href="/register">Registrarse</a></li>
                 <li><a href="/login">Iniciar Sesión</a></li>
-                <li><a href="/cart/{{user._id}}">Carrito</a></li> <!-- Enlace al carrito -->
+                {{#if user}} <!-- Verifica si el usuario está autenticado -->
+                    <li><a href="/logout">Cerrar Sesión</a></li> <!-- Opción para cerrar sesión -->
+                    <li>
+                        {{#if user.cart}} <!-- Verifica si el usuario tiene un carrito -->
+                            <a href="/cart/{{user.cart}}">Carrito</a> <!-- Usa el ID del carrito -->
+                        {{else}}
+                            <span>Carrito vacío</span> <!-- Mensaje si no hay carrito -->
+                        {{/if}}
+                    </li>
+                {{/if}}
             </ul>
         </nav>
     </header>
 
     <main>
         {{{body}}} <!-- Aquí se renderizará el contenido de las otras vistas -->
+        
+        {{#if messages.success}} <!-- Mensajes de éxito -->
+            <div class="alert alert-success">
+                {{messages.success}}
+            </div>
+        {{/if}}
+        {{#if messages.error}} <!-- Mensajes de error -->
+            <div class="alert alert-danger">
+                {{messages.error}}
+            </div>
+        {{/if}}
     </main>
 
     <footer>

@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import flash from 'connect-flash';
 import { engine } from 'express-handlebars';
+import User from './models/user.js'; 
+import Cart from './models/Cart.js'; // Importar el modelo de carrito
 
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
@@ -23,10 +25,18 @@ const app = express();
 // Configuración de Handlebars
 app.engine('handlebars', engine({
     extname: '.handlebars',
-    defaultLayout: 'main', 
+    defaultLayout: 'main',
+    runtimeOptions: {
+        allowProtoPropertiesByDefault: true,
+        allowProtoMethodsByDefault: true,
+    }
 }));
 app.set('view engine', 'handlebars');
 app.set('views', './src/views');  // Ruta donde se encuentran las vistas
+
+// Middleware para parsear solicitudes
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Configuración de la sesión
 app.use(session({
@@ -40,8 +50,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Configuración de flash
 app.use(flash());
@@ -53,8 +61,13 @@ app.use((req, res, next) => {
 });
 
 // Rutas de la aplicación
-app.get('/', (req, res) => {
-    res.render('home', { user: req.user });
+app.get('/', async (req, res) => {
+    let cart = null;
+    if (req.user) {
+        // Intenta obtener el carrito del usuario autenticado
+        cart = await Cart.findOne({ user: req.user._id }).populate('products.product');
+    }
+    res.render('home', { user: req.user, cart }); // Pasar el carrito al renderizado
 });
 
 app.get('/register', (req, res) => {
@@ -104,25 +117,23 @@ app.post('/login', passport.authenticate('local', {
 
 // Usar las rutas API
 app.use('/api/users', userRoutes);
-
-// Solo un administrador puede acceder a las rutas de productos
 app.use('/api/products', isAdmin, productRoutes);
-
-// Solo un usuario puede acceder a las rutas de carrito
-app.use('/api/carts', isUser, cartRoutes);
-
-// Rutas de sesión
+app.use('/api/carts', cartRoutes);
 app.use('/api/sessions', sessionRoutes);
 
-// Conectar a MongoDB
-mongoose.connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('Conectado a MongoDB'))
-.catch(err => console.error('Error al conectar a MongoDB', err));
+// Función para conectar a MongoDB
+const connectToDB = async () => {
+    try {
+        await mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+        console.log('Conectado a MongoDB');
+    } catch (err) {
+        console.error('Error al conectar a MongoDB', err);
+    }
+};
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-    console.log(`Servidor ejecutándose en el puerto ${PORT}`);
+// Iniciar la conexión a la base de datos y al servidor
+connectToDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Servidor ejecutándose en el puerto ${PORT}`);
+    });
 });
