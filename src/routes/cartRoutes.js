@@ -48,10 +48,8 @@ router.post('/:cid/products', isAuthenticated, async (req, res) => {
         // Verificar si el producto ya existe en el carrito
         const existingProductIndex = cart.products.findIndex(item => item.product.equals(productId));
         if (existingProductIndex !== -1) {
-     
             cart.products[existingProductIndex].quantity += quantity;
         } else {
-
             cart.products.push({ product: productId, quantity });
         }
 
@@ -134,6 +132,22 @@ router.post('/:cid/purchase', isAuthenticated, async (req, res) => {
         });
     } catch (error) {
         console.error('Error al procesar la compra:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Ruta para obtener el carrito del usuario
+router.get('/:cid', isAuthenticated, async (req, res) => {
+    const cartId = req.params.cid;
+
+    try {
+        const cart = await Cart.findById(cartId).populate('products.product'); // Asegúrate de que "products.product" esté referenciado correctamente
+        if (!cart) {
+            return res.status(404).json({ message: 'Carrito no encontrado' });
+        }
+        res.status(200).json(cart);
+    } catch (error) {
+        console.error('Error al obtener el carrito:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });

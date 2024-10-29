@@ -30,4 +30,6 @@ const cartSchema = new Schema({
 // Crear el modelo del carrito y exportarlo
 const Cart = model('Cart', cartSchema);
 
+
+
 export default Cart;
