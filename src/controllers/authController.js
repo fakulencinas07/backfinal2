@@ -1,20 +1,18 @@
-// src/controllers/authController.js
+
 import User from '../models/user.js';
 import passport from 'passport';
 import bcrypt from 'bcrypt';
 
-// Registro de usuario
+
 export const registerUser = async (req, res) => {
     try {
         const { first_name, last_name, email, password } = req.body;
 
-        // Verificar si el usuario ya existe
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'El correo electrónico ya está en uso' });
         }
 
-        // Hashear la contraseña
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Crear un nuevo usuario

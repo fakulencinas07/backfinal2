@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import User from '../models/user.js'; // Asegúrate de que esta ruta sea correcta
+import User from '../models/user.js'; 
 
 passport.use(new LocalStrategy({
     usernameField: 'email',
@@ -11,7 +11,7 @@ passport.use(new LocalStrategy({
         if (!user) {
             return done(null, false, { message: 'El usuario no existe' });
         }
-        const isMatch = await user.comparePassword(password); // Implementa este método en tu modelo User
+        const isMatch = await user.comparePassword(password); 
         if (!isMatch) {
             return done(null, false, { message: 'Contraseña incorrecta' });
         }

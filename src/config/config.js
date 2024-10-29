@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Extrae las variables de entorno del archivo .env
+
 const {
     MONGO_URI,    // URI para conectarse a MongoDB
     JWT_SECRET,   // Clave secreta para JWT
@@ -18,7 +18,7 @@ if (!JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined');
 }
 
-// Exporta las variables para usarlas en otras partes de la aplicación
+
 export {
     MONGO_URI,
     JWT_SECRET,

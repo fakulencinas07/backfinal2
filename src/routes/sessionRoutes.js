@@ -14,7 +14,7 @@ router.get('/login', (req, res) => {
 router.post('/login', passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login',
-    failureFlash: true // Si estás usando flash messages
+    failureFlash: true 
 }));
 
 // Ruta para cerrar sesión

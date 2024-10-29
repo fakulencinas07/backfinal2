@@ -2,7 +2,7 @@ import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 import Ticket from '../models/Ticket.js';
 import { ObjectId } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid'; // Para generar un código único
+import { v4 as uuidv4 } from 'uuid'; 
 
 // Función para obtener el carrito de un usuario
 export const getCart = async (req, res) => {
@@ -19,7 +19,7 @@ export const getCart = async (req, res) => {
 
         res.json({ status: 'success', payload: cart });
     } catch (error) {
-        console.error(error); // Registrar el error para el desarrollador
+        console.error(error); 
         res.status(500).json({ status: 'error', message: 'Error retrieving cart' });
     }
 };
@@ -59,7 +59,7 @@ export const addProductToCart = async (req, res) => {
         await cart.save();
         res.json({ status: 'success', payload: cart });
     } catch (error) {
-        console.error(error); // Registrar el error para el desarrollador
+        console.error(error); 
         res.status(500).json({ status: 'error', message: 'Error adding product to cart' });
     }
 };
@@ -83,7 +83,7 @@ export const removeProductFromCart = async (req, res) => {
         await cart.save();
         res.json({ status: 'success', payload: cart });
     } catch (error) {
-        console.error(error); // Registrar el error para el desarrollador
+        console.error(error); 
         res.status(500).json({ status: 'error', message: 'Error removing product from cart' });
     }
 };
@@ -105,7 +105,7 @@ export const clearCart = async (req, res) => {
         await cart.save();
         res.json({ status: 'success', message: 'Cart cleared' });
     } catch (error) {
-        console.error(error); // Registrar el error para el desarrollador
+        console.error(error); 
         res.status(500).json({ status: 'error', message: 'Error clearing cart' });
     }
 };
@@ -125,10 +125,10 @@ export const purchaseCart = async (req, res) => {
         for (let item of cart.products) {
             const product = item.product;
 
-            // Verificación de existencia de stock
+            
             if (!product) {
-                productsUnavailable.push(item.product); // Añadir el producto no encontrado
-                continue; // Continuar al siguiente producto
+                productsUnavailable.push(item.product);
+                continue; 
             }
 
             if (product.stock >= item.quantity) {

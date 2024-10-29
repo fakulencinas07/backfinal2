@@ -2,8 +2,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import User from '../models/user.js';
-import { JWT_SECRET } from './config.js'; // Asegúrate de que JWT_SECRET esté correctamente importado
-
+import { JWT_SECRET } from './config.js'; 
 // Configuración de la estrategia local
 passport.use(new LocalStrategy(
   { usernameField: 'email' },

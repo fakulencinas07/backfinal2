@@ -1,4 +1,4 @@
-// src/repositories/ProductRepository.js
+
 import productDAO from '../dao/ProductDAO.js';
 
 class ProductRepository {

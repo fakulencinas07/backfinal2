@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import flash from 'connect-flash';
 import { engine } from 'express-handlebars';
 import User from './models/user.js'; 
-import Cart from './models/Cart.js'; // Importar el modelo de carrito
+import Cart from './models/Cart.js'; 
 
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
@@ -16,7 +16,7 @@ import sessionRoutes from './routes/sessionRoutes.js';
 
 import { MONGO_URI, PORT } from './config/config.js';
 import './config/passportConfig.js';
-import { isAdmin, isUser } from './middleware/authMiddleware.js'; // Middleware para autorización
+import { isAdmin, isUser } from './middleware/authMiddleware.js'; 
 
 dotenv.config();
 
@@ -32,7 +32,7 @@ app.engine('handlebars', engine({
     }
 }));
 app.set('view engine', 'handlebars');
-app.set('views', './src/views');  // Ruta donde se encuentran las vistas
+app.set('views', './src/views');  
 
 // Middleware para parsear solicitudes
 app.use(express.json());
@@ -43,7 +43,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'your_secret_key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === 'production' ? true : false } // Ajusta según tu entorno
+    cookie: { secure: process.env.NODE_ENV === 'production' ? true : false } 
 }));
 
 // Middleware de Passport
@@ -60,14 +60,14 @@ app.use((req, res, next) => {
     next();
 });
 
-// Rutas de la aplicación
+
 app.get('/', async (req, res) => {
     let cart = null;
     if (req.user) {
-        // Intenta obtener el carrito del usuario autenticado
+        
         cart = await Cart.findOne({ user: req.user._id }).populate('products.product');
     }
-    res.render('home', { user: req.user, cart }); // Pasar el carrito al renderizado
+    res.render('home', { user: req.user, cart }); 
 });
 
 app.get('/register', (req, res) => {
@@ -95,7 +95,7 @@ app.post('/register', async (req, res) => {
             first_name,
             last_name,
             email,
-            password // Asegúrate de hashear la contraseña antes de guardar en producción
+            password 
         });
 
         await newUser.save();
@@ -112,7 +112,7 @@ app.post('/register', async (req, res) => {
 app.post('/login', passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login',
-    failureFlash: true // Mensajes de error en caso de fallo
+    failureFlash: true 
 }));
 
 // Usar las rutas API

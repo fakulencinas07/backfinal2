@@ -18,10 +18,10 @@ const productSchema = new Schema({
         required: true,
         trim: true,
     },
-    stock: {  // Agregado el campo de stock
+    stock: {  
         type: Number,
         required: true,
-        min: 0,  // Asegúrate de que no pueda ser negativo
+        min: 0,  
     },
     available: {
         type: Boolean,
@@ -32,7 +32,7 @@ const productSchema = new Schema({
     timestamps: true,
 });
 
-// Evitar sobrescribir el modelo si ya existe
+
 const Product = mongoose.models.Product || model('Product', productSchema);
 
 export default Product;

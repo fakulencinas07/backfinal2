@@ -2,7 +2,7 @@ import { Router } from 'express';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 import Ticket from '../models/Ticket.js';
-import User from '../models/user.js'; // Asegúrate de tener el nombre correcto del archivo
+import User from '../models/user.js'; 
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
@@ -17,7 +17,7 @@ const isAuthenticated = (req, res, next) => {
 
 // Ruta para crear un nuevo carrito
 router.post('/', isAuthenticated, async (req, res) => {
-    const userId = req.user._id; // Asumiendo que el ID de usuario está en la sesión
+    const userId = req.user._id; 
 
     try {
         const newCart = new Cart({ user: userId, products: [] });
@@ -32,7 +32,7 @@ router.post('/', isAuthenticated, async (req, res) => {
 // Ruta para agregar productos al carrito
 router.post('/:cid/products', isAuthenticated, async (req, res) => {
     const cartId = req.params.cid;
-    const { productId, quantity } = req.body; // Espera que el body contenga el ID del producto y la cantidad
+    const { productId, quantity } = req.body;
 
     try {
         const cart = await Cart.findById(cartId);
@@ -48,10 +48,10 @@ router.post('/:cid/products', isAuthenticated, async (req, res) => {
         // Verificar si el producto ya existe en el carrito
         const existingProductIndex = cart.products.findIndex(item => item.product.equals(productId));
         if (existingProductIndex !== -1) {
-            // Si existe, actualizar la cantidad
+     
             cart.products[existingProductIndex].quantity += quantity;
         } else {
-            // Si no existe, agregarlo
+
             cart.products.push({ product: productId, quantity });
         }
 
@@ -78,16 +78,16 @@ router.post('/:cid/purchase', isAuthenticated, async (req, res) => {
 
         // Verificar stock y actualizar productos disponibles
         for (const item of products) {
-            const product = await Product.findById(item.product); // Asegúrate de que item.product sea el ID correcto
+            const product = await Product.findById(item.product); 
 
-            if (product) { // Verifica si el producto existe
+            if (product) { 
                 console.log(`Producto: ${product.name}, Stock: ${product.stock}, Cantidad: ${item.quantity}`);
                 
                 if (product.stock >= item.quantity) {
-                    product.stock -= item.quantity; // Restar cantidad del stock
-                    await product.save(); // Guardar el producto actualizado
+                    product.stock -= item.quantity; 
+                    await product.save(); 
                 } else {
-                    productosNoDisponibles.push(item.product); // Agregar producto al arreglo de no disponibles
+                    productosNoDisponibles.push(item.product); 
                 }
             } else {
                 console.log(`Producto con ID ${item.product} no encontrado.`);
@@ -106,7 +106,7 @@ router.post('/:cid/purchase', isAuthenticated, async (req, res) => {
             const product = await Product.findById(item.product);
             return product && !productosNoDisponibles.includes(item.product) 
                 ? item.quantity * product.price 
-                : 0; // Si no está disponible, sumar 0
+                : 0; 
         }));
 
         const totalAmount = ticketAmount.reduce((total, amount) => total + amount, 0);

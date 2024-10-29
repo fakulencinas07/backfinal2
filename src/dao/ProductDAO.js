@@ -1,4 +1,4 @@
-// src/dao/ProductDAO.js
+
 import ProductModel from '../models/Product.js';
 
 class ProductDAO {

@@ -5,26 +5,26 @@ const { Schema, model } = mongoose;
 const productSchema = new Schema({
     product: {
         type: Schema.Types.ObjectId,
-        ref: 'Product', // Referencia al modelo Product
+        ref: 'Product', 
         required: true
     },
     quantity: {
         type: Number,
         required: true,
-        min: 1 // La cantidad mínima debe ser 1
+        min: 1 
     }
-}, { _id: false }); // Desactiva la creación de _id para subdocumentos
+}, { _id: false }); 
 
 // Esquema para el carrito
 const cartSchema = new Schema({
-    user: { // Campo para vincular el carrito a un usuario
+    user: { 
         type: Schema.Types.ObjectId,
-        ref: 'User', // Referencia al modelo User
+        ref: 'User', 
         required: true
     },
-    products: [productSchema], // Arreglo de productos en el carrito
+    products: [productSchema], 
 }, {
-    timestamps: true // Incluye createdAt y updatedAt en el esquema
+    timestamps: true 
 });
 
 // Crear el modelo del carrito y exportarlo

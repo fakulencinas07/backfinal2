@@ -5,7 +5,7 @@
  */
 export function cookieExtractor(req) {
     if (req && req.cookies) {
-        return req.cookies['token'] || null;  // Assuming the cookie name is 'token'
+        return req.cookies['token'] || null;  
     }
     return null;
 }
