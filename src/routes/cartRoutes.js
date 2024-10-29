@@ -2,11 +2,12 @@ import { Router } from 'express';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 import Ticket from '../models/Ticket.js';
+import User from '../models/user.js'; // Asegúrate de tener el nombre correcto del archivo
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
-// Middleware para verificar la autenticación del usuario
+// Middleware para verificar autenticación
 const isAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
         return next();
@@ -14,168 +15,127 @@ const isAuthenticated = (req, res, next) => {
     return res.status(401).json({ message: 'No estás autorizado' });
 };
 
-// Ruta para obtener un carrito por su ID
-router.get('/:cartId', isAuthenticated, async (req, res) => {
-    const { cartId } = req.params;
-
-    try {
-        // Buscar el carrito por ID y poblar los productos
-        const cart = await Cart.findById(cartId).populate('products.product');
-        if (!cart) {
-            return res.status(404).json({ message: 'Carrito no encontrado' });
-        }
-
-        // Devolver el carrito como JSON
-        res.status(200).json(cart);
-    } catch (error) {
-        console.error('Error al obtener el carrito:', error);
-        res.status(500).json({ message: 'Error interno del servidor' });
-    }
-});
-
 // Ruta para crear un nuevo carrito
 router.post('/', isAuthenticated, async (req, res) => {
-    const userId = req.user._id;
+    const userId = req.user._id; // Asumiendo que el ID de usuario está en la sesión
 
     try {
-        // Verificar si el usuario ya tiene un carrito
-        const existingCart = await Cart.findOne({ user: userId });
-        if (existingCart) {
-            return res.status(400).json({ message: 'El carrito ya existe para este usuario' });
-        }
-
-        // Crear un nuevo carrito
-        const newCart = new Cart({
-            user: userId,
-            products: []
-        });
-
+        const newCart = new Cart({ user: userId, products: [] });
         await newCart.save();
-        res.status(201).json({ message: 'Carrito creado con éxito', cart: newCart });
+        res.status(201).json({ message: 'Carrito creado', cartId: newCart._id });
     } catch (error) {
         console.error('Error al crear el carrito:', error);
-        res.status(500).json({ message: 'Error interno del servidor' });
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// Ruta para agregar un producto al carrito
-router.post('/:cartId/products', isAuthenticated, async (req, res) => {
-    const { cartId } = req.params;
-    const { productId, quantity } = req.body;
+// Ruta para agregar productos al carrito
+router.post('/:cid/products', isAuthenticated, async (req, res) => {
+    const cartId = req.params.cid;
+    const { productId, quantity } = req.body; // Espera que el body contenga el ID del producto y la cantidad
 
     try {
-        // Buscar el carrito por ID
         const cart = await Cart.findById(cartId);
         if (!cart) {
             return res.status(404).json({ message: 'Carrito no encontrado' });
         }
 
-        // Verificar si el producto existe
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({ message: 'Producto no encontrado' });
         }
 
-        // Verificar si el producto ya está en el carrito
-        const existingProduct = cart.products.find(item => item.product.toString() === productId);
-
-        if (existingProduct) {
-            // Si el producto ya existe, actualizar la cantidad
-            existingProduct.quantity += quantity;
+        // Verificar si el producto ya existe en el carrito
+        const existingProductIndex = cart.products.findIndex(item => item.product.equals(productId));
+        if (existingProductIndex !== -1) {
+            // Si existe, actualizar la cantidad
+            cart.products[existingProductIndex].quantity += quantity;
         } else {
-            // Si no existe, agregarlo al carrito
+            // Si no existe, agregarlo
             cart.products.push({ product: productId, quantity });
         }
 
         await cart.save();
         res.status(200).json({ message: 'Producto agregado al carrito', cart });
     } catch (error) {
-        console.error('Error al agregar producto al carrito:', error);
-        res.status(500).json({ message: 'Error interno del servidor' });
+        console.error('Error al agregar el producto al carrito:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// Función para finalizar la compra
-const purchaseCart = async (req, res) => {
-    const { cartId } = req.params;
-    const userId = req.user._id;
+// Ruta para finalizar la compra
+router.post('/:cid/purchase', isAuthenticated, async (req, res) => {
+    const cartId = req.params.cid;
 
     try {
-        // Buscar el carrito por ID y poblar los productos
         const cart = await Cart.findById(cartId).populate('products.product');
-
         if (!cart) {
             return res.status(404).json({ message: 'Carrito no encontrado' });
         }
 
-        console.log('Carrito poblado:', cart);
+        const products = cart.products;
+        const productosNoDisponibles = [];
 
-        let totalAmount = 0;
-        const productsUnavailable = [];
+        // Verificar stock y actualizar productos disponibles
+        for (const item of products) {
+            const product = await Product.findById(item.product); // Asegúrate de que item.product sea el ID correcto
 
-        for (let item of cart.products) {
-            const product = item.product;
-
-            if (!product) {
-                console.error('Producto no encontrado:', item);
-                continue;
-            }
-
-            console.log(`Verificando stock del producto: ${product.name}`); // Asegúrate de que `product` no sea undefined
-            console.log(`Stock actual: ${product.available ? 'Disponible' : 'No disponible'}, Cantidad solicitada: ${item.quantity}`);
-            
-
-            // Verificar el stock y descontar si es suficiente
-            if (product.stock >= item.quantity) {
-                totalAmount += product.price * item.quantity;
-                product.stock -= item.quantity; // Reducir el stock
-                await product.save(); // Guardar el producto actualizado
+            if (product) { // Verifica si el producto existe
+                console.log(`Producto: ${product.name}, Stock: ${product.stock}, Cantidad: ${item.quantity}`);
+                
+                if (product.stock >= item.quantity) {
+                    product.stock -= item.quantity; // Restar cantidad del stock
+                    await product.save(); // Guardar el producto actualizado
+                } else {
+                    productosNoDisponibles.push(item.product); // Agregar producto al arreglo de no disponibles
+                }
             } else {
-                productsUnavailable.push({
-                    id: product._id,
-                    requestedQuantity: item.quantity,
-                    availableStock: product.stock
-                });
+                console.log(`Producto con ID ${item.product} no encontrado.`);
+                productosNoDisponibles.push(item.product);
             }
         }
 
-        // Si hay productos no disponibles, enviar un mensaje
-        if (productsUnavailable.length > 0) {
-            return res.status(400).json({
-                message: 'Algunos productos no están disponibles',
-                productsUnavailable
-            });
+        // Obtener el usuario que tiene el carrito
+        const userWithCart = await User.findById(cart.user);
+        if (!userWithCart) {
+            return res.status(404).json({ message: 'Usuario no encontrado para este carrito' });
         }
 
-        // Si se puede completar la compra
-        if (totalAmount > 0) {
-            const ticket = new Ticket({
-                code: uuidv4(),
-                purchase_datetime: new Date(),
-                amount: totalAmount,
-                purchaser: req.user.email
-            });
-            await ticket.save();
+        // Crear un ticket de compra
+        const ticketAmount = await Promise.all(products.map(async item => {
+            const product = await Product.findById(item.product);
+            return product && !productosNoDisponibles.includes(item.product) 
+                ? item.quantity * product.price 
+                : 0; // Si no está disponible, sumar 0
+        }));
 
-            // Vaciar el carrito después de la compra
-            cart.products = [];
-            await cart.save();
+        const totalAmount = ticketAmount.reduce((total, amount) => total + amount, 0);
 
-            return res.status(200).json({
-                message: 'Compra realizada con éxito',
-                ticket
-            });
-        } else {
-            return res.status(400).json({ message: 'No hay productos disponibles para completar la compra' });
-        }
+        const ticket = new Ticket({
+            code: uuidv4(), // Generar código único para el ticket
+            purchase_datetime: new Date(),
+            amount: totalAmount,
+            purchaser: userWithCart._id
+        });
+        await ticket.save();
 
+        // Filtrar y eliminar del carrito los productos que no se compraron
+        cart.products = cart.products.filter(item =>
+            !productosNoDisponibles.some(productId => productId.equals(item.product))
+        );
+
+        // Guardar el carrito actualizado en la base de datos
+        await cart.save();
+
+        res.status(200).json({
+            message: 'Compra realizada con éxito',
+            productosNoDisponibles,
+            ticket
+        });
     } catch (error) {
         console.error('Error al procesar la compra:', error);
-        res.status(500).json({ message: 'Error al procesar la compra' });
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
-};
-
-// Ruta para finalizar la compra
-router.post('/:cartId/purchase', isAuthenticated, purchaseCart);
+});
 
 export default router;

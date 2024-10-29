@@ -35,5 +35,10 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
+// Verifica si el modelo ya fue definido y elimínalo en tal caso
+if (mongoose.models.User) {
+    delete mongoose.models.User;
+}
+
 const User = mongoose.model('User', userSchema);
 export default User;

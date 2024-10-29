@@ -124,7 +124,7 @@ app.use('/api/sessions', sessionRoutes);
 // Función para conectar a MongoDB
 const connectToDB = async () => {
     try {
-        await mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+        await mongoose.connect(MONGO_URI,);
         console.log('Conectado a MongoDB');
     } catch (err) {
         console.error('Error al conectar a MongoDB', err);
